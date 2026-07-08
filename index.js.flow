@@ -6,7 +6,7 @@
  */
 
 declare export { UI_EVENT, DEVICE_EVENT } from "@trezor/connect-web";
-declare type ValueOf<T> = $Values<T>;
+declare type ValueOf<T> = $ElementType<T, $Keys<T>>;
 export type Manifest = {|
   appName: string,
   appUrl: string,
