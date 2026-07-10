@@ -2,7 +2,7 @@ This library wraps `@trezor/connect-web` using TypeScript, exposes the methods, 
 
 ## Development
 
-Use Node 22 LTS or another supported LTS version allowed by `package.json`.
+Use Node 22 LTS or another supported LTS version allowed by `package.json`. npm installs enforce the declared engines through `.npmrc`.
 
 ```sh
 npm ci
