@@ -11,14 +11,30 @@ permissions:
 
 jobs:
   test:
+    name: Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 22.x
+          - 24.x
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
           cache: npm
-      - run: npm ci
-      - run: npm run build
-      - run: git diff --exit-code -- index.js index.js.flow
-      - run: npm test
+
+      - name: Use pinned npm
+        run: npm install --global npm@10.9.7
+
+      - name: Install
+        run: npm ci
+
+      - name: Verify generated artifacts and tests
+        run: npm run verify
