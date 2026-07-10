@@ -16,6 +16,17 @@ function dependencyNames(dependencies = {}) {
   return Object.keys(dependencies);
 }
 
+function collectOverrideKeys(overrides = {}) {
+  return Object.entries(overrides).flatMap(([packageName, override]) => [
+    packageName,
+    ...(override && typeof override === 'object' ? collectOverrideKeys(override) : []),
+  ]);
+}
+
+function matchesPackageName(packageName, dependency) {
+  return packageName === dependency || packageName.startsWith(`${dependency}@`);
+}
+
 test('does not declare CSL directly', () => {
   const declared = [
     ...dependencyNames(packageJson.dependencies),
@@ -26,6 +37,20 @@ test('does not declare CSL directly', () => {
 
   assert.deepEqual(
     declared.filter((dependency) => cslPackages.includes(dependency)),
+    []
+  );
+});
+
+test('does not alias CSL through package-manager overrides', () => {
+  const overrideKeys = [
+    ...collectOverrideKeys(packageJson.overrides),
+    ...collectOverrideKeys(packageJson.resolutions),
+  ];
+
+  assert.deepEqual(
+    overrideKeys.filter((packageName) =>
+      cslPackages.some((dependency) => matchesPackageName(packageName, dependency))
+    ),
     []
   );
 });
