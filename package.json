@@ -12,6 +12,11 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "packageManager": "npm@10.9.7",
+  "engines": {
+    "node": ">=22 <23",
+    "npm": ">=10 <11"
+  },
   "dependencies": {
     "@trezor/connect-web": "9.6.4"
   },
