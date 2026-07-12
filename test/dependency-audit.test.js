@@ -7,60 +7,95 @@ const root = path.resolve(__dirname, '..');
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const packageLock = JSON.parse(fs.readFileSync(path.join(root, 'package-lock.json'), 'utf8'));
 
-const cslPackages = [
-  '@emurgo/cardano-serialization-lib-browser',
-  '@emurgo/cardano-serialization-lib-nodejs',
-];
+const CSL_PACKAGE_NAME = /^@emurgo\/cardano-serialization-lib(?:-[a-z0-9]+)*$/;
+const CSL_PACKAGE_SPECIFIER = /^npm:@emurgo\/cardano-serialization-lib(?:-[a-z0-9]+)*(?:@|$)/;
+const CSL_TARBALL_URL = /\/@emurgo\/cardano-serialization-lib(?:-[a-z0-9]+)*\//;
+const allowedDependentPaths = ['node_modules/@fivebinaries/coin-selection'];
 
 function dependencyNames(dependencies = {}) {
   return Object.keys(dependencies);
 }
 
-function collectOverrideKeys(overrides = {}) {
+function dependencyReferences(dependencies = {}) {
+  return Object.entries(dependencies).flatMap(([packageName, specifier]) => [packageName, specifier]);
+}
+
+function collectOverrideReferences(overrides = {}) {
   return Object.entries(overrides).flatMap(([packageName, override]) => [
     packageName,
-    ...(override && typeof override === 'object' ? collectOverrideKeys(override) : []),
+    typeof override === 'string' ? override : undefined,
+    ...(override && typeof override === 'object' ? collectOverrideReferences(override) : []),
   ]);
 }
 
-function matchesPackageName(packageName, dependency) {
-  return packageName === dependency || packageName.startsWith(`${dependency}@`);
+function isCslPackageName(value) {
+  return typeof value === 'string' && CSL_PACKAGE_NAME.test(value);
 }
+
+function isCslPackageReference(value) {
+  return typeof value === 'string' && (isCslPackageName(value) || CSL_PACKAGE_SPECIFIER.test(value));
+}
+
+function isCslPackagePath(packagePath) {
+  return packagePath
+    .split('node_modules/')
+    .filter(Boolean)
+    .some((packageName) => isCslPackageName(packageName));
+}
+
+test('detects CSL package variants and npm aliases', () => {
+  assert.equal(isCslPackageReference('@emurgo/cardano-serialization-lib-asmjs'), true);
+  assert.equal(
+    isCslPackageReference('npm:@emurgo/cardano-serialization-lib-browser@13.2.1'),
+    true
+  );
+  assert.equal(
+    CSL_TARBALL_URL.test(
+      'https://registry.npmjs.org/@emurgo/cardano-serialization-lib-browser/-/cardano-serialization-lib-browser-13.2.1.tgz'
+    ),
+    true
+  );
+});
 
 test('does not declare CSL directly', () => {
   const declared = [
-    ...dependencyNames(packageJson.dependencies),
-    ...dependencyNames(packageJson.devDependencies),
-    ...dependencyNames(packageJson.peerDependencies),
-    ...dependencyNames(packageJson.optionalDependencies),
+    ...dependencyReferences(packageJson.dependencies),
+    ...dependencyReferences(packageJson.devDependencies),
+    ...dependencyReferences(packageJson.peerDependencies),
+    ...dependencyReferences(packageJson.optionalDependencies),
   ];
 
   assert.deepEqual(
-    declared.filter((dependency) => cslPackages.includes(dependency)),
+    declared.filter(isCslPackageReference),
     []
   );
 });
 
 test('does not alias CSL through package-manager overrides', () => {
-  const overrideKeys = [
-    ...collectOverrideKeys(packageJson.overrides),
-    ...collectOverrideKeys(packageJson.resolutions),
+  const overrideReferences = [
+    ...collectOverrideReferences(packageJson.overrides),
+    ...collectOverrideReferences(packageJson.resolutions),
   ];
 
   assert.deepEqual(
-    overrideKeys.filter((packageName) =>
-      cslPackages.some((dependency) => matchesPackageName(packageName, dependency))
-    ),
+    overrideReferences.filter(isCslPackageReference),
     []
   );
 });
 
 test('keeps lockfile CSL references isolated to the known coin-selection dependency', () => {
   const packages = packageLock.packages || {};
-  const allowedDependentPaths = ['node_modules/@fivebinaries/coin-selection'];
+  const allowedCslEntries = new Set(
+    allowedDependentPaths.flatMap((packagePath) =>
+      dependencyNames(packages[packagePath]?.dependencies)
+        .filter(isCslPackageName)
+        .map((dependency) => `node_modules/${dependency}`)
+    )
+  );
+
   const cslDependents = Object.entries(packages)
     .filter(([, metadata]) =>
-      dependencyNames(metadata.dependencies).some((dependency) => cslPackages.includes(dependency))
+      dependencyNames(metadata.dependencies).some(isCslPackageName)
     )
     .map(([packagePath]) => packagePath);
 
@@ -69,13 +104,19 @@ test('keeps lockfile CSL references isolated to the known coin-selection depende
     []
   );
 
-  const cslEntries = Object.keys(packages).filter((packagePath) =>
-    cslPackages.some((dependency) => packagePath.endsWith(`node_modules/${dependency}`))
-  );
-  const allowedEntries = cslPackages.map((dependency) => `node_modules/${dependency}`);
+  const cslEntries = Object.keys(packages).filter(isCslPackagePath);
 
   assert.deepEqual(
-    cslEntries.filter((packagePath) => !allowedEntries.includes(packagePath)),
+    cslEntries.filter((packagePath) => !allowedCslEntries.has(packagePath)),
+    []
+  );
+
+  const cslTarballs = Object.entries(packages)
+    .filter(([, metadata]) => CSL_TARBALL_URL.test(metadata.resolved || ''))
+    .map(([packagePath]) => packagePath);
+
+  assert.deepEqual(
+    cslTarballs.filter((packagePath) => !allowedCslEntries.has(packagePath)),
     []
   );
 });
