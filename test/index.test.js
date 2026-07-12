@@ -69,8 +69,8 @@ test('exports the Cardano constants Yoroi uses', () => {
 test('forwards lifecycle calls and re-exports device/UI events', async () => {
   const manifest = {
     appName: 'Yoroi',
-    appUrl: 'https://yoroi-wallet.com',
-    email: 'support@yoroi-wallet.com',
+    appUrl: 'https://wallet.blinklabs.cloud',
+    email: 'support@blinklabs.cloud',
   };
   const callback = () => {};
   const { calls, entrypoint } = loadEntrypoint({
