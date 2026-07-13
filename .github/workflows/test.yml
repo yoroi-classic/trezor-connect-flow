@@ -33,6 +33,9 @@ jobs:
       - name: Use pinned npm
         run: npm install --global npm@10.9.7
 
+      - name: Check toolchain
+        run: npm run check:toolchain
+
       - name: Install
         run: npm ci
 

@@ -11,13 +11,14 @@
     "README.md"
   ],
   "scripts": {
+    "check:toolchain": "node scripts/check-toolchain.js",
     "test": "node --test test/*.test.js",
     "typecheck": "tsc --noEmit",
     "tsc": "tsc",
     "gen-flow": "flowgen --no-inexact --add-flow-header -o index.js.flow index.d.ts",
     "build": "npm run tsc && npm run gen-flow",
     "check:generated": "npm run build && git diff --exit-code HEAD -- index.js index.d.ts index.js.flow",
-    "verify": "npm run check:generated && npm test"
+    "verify": "npm run check:toolchain && npm run check:generated && npm test"
   },
   "repository": {
     "type": "git",
