@@ -4,6 +4,12 @@
   "description": "Yoroi wrapper around @trezor/connect-web with generated Flow types.",
   "main": "index.js",
   "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "index.js.flow",
+    "README.md"
+  ],
   "scripts": {
     "test": "node --test test/*.test.js",
     "typecheck": "tsc --noEmit",
