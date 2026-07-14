@@ -79,7 +79,7 @@ class TrezorConnect {
         connect_web_1.default.on(event, callback);
     }
     static off(event, callback) {
-        connect_web_1.default.on(event, callback);
+        connect_web_1.default.off(event, callback);
     }
     static dispose() {
         connect_web_1.default.dispose();
