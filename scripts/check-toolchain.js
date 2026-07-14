@@ -29,7 +29,12 @@ const packageJson = readJson('package.json');
 const packageLock = readJson('package-lock.json');
 const npmrc = fs.readFileSync(path.join(root, '.npmrc'), 'utf8');
 const nvmrc = fs.readFileSync(path.join(root, '.nvmrc'), 'utf8').trim();
+const dependabot = fs.readFileSync(path.join(root, '.github', 'dependabot.yml'), 'utf8');
 const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'test.yml'), 'utf8');
+const dependencyReviewWorkflow = fs.readFileSync(
+  path.join(root, '.github', 'workflows', 'dependency-review.yml'),
+  'utf8'
+);
 const npmVersion = parsePackageManager(packageJson.packageManager);
 const actualNodeMajor = Number(process.versions.node.split('.')[0]);
 const actualNpmVersion = currentNpmVersion();
@@ -48,3 +53,14 @@ assert.match(workflow, /^\s+- 22\.x$/m);
 assert.match(workflow, /^\s+- 24\.x$/m);
 assert.match(workflow, new RegExp(`npm install --global npm@${npmVersion.replaceAll('.', '\\.')}`));
 assert.match(workflow, /npm run check:toolchain/);
+assert.match(workflow, /npm ci/);
+assert.match(workflow, /npm run verify/);
+assert.ok(
+  workflow.indexOf('npm ci') < workflow.indexOf('npm run verify'),
+  'CI must install dependencies before running package verification'
+);
+assert.match(dependabot, /package-ecosystem: npm/);
+assert.match(dependabot, /directory: "\/"/);
+assert.match(dependencyReviewWorkflow, /^\s+- package\.json$/m);
+assert.match(dependencyReviewWorkflow, /^\s+- package-lock\.json$/m);
+assert.match(dependencyReviewWorkflow, /fail-on-severity: high/);
