@@ -12,6 +12,10 @@ const coinSelectionRoot = path.join(
   'lib',
   'cjs'
 );
+const cmlPackageNames = [
+  '@dcspark/cardano-multiplatform-lib-browser',
+  '@dcspark/cardano-multiplatform-lib-nodejs',
+];
 
 const expectedUnsupportedCmlSurface = [
   'AssetName.new',
@@ -98,9 +102,71 @@ function collectUnsupportedCmlSurface(cslSurface, cml) {
   return unsupported.sort();
 }
 
+function collectCmlDeclarationSurface(packageName) {
+  const packageRoot = path.dirname(require.resolve(`${packageName}/package.json`));
+  const packageMetadata = JSON.parse(
+    fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8')
+  );
+  const source = fs.readFileSync(path.join(packageRoot, packageMetadata.types), 'utf8');
+  const surface = new Map();
+
+  for (const match of source.matchAll(/^export function ([A-Za-z0-9_]+)\(/gm)) {
+    surface.set(match[1], new Set());
+  }
+
+  for (const match of source.matchAll(/^export class ([A-Za-z0-9_]+) \{([\s\S]*?)^\}/gm)) {
+    const [, exportedName, body] = match;
+    const methods = new Set();
+
+    for (const method of body.matchAll(/^\s*(?:static\s+)?([A-Za-z0-9_]+)\(/gm)) {
+      methods.add(method[1]);
+    }
+
+    surface.set(exportedName, methods);
+  }
+
+  return surface;
+}
+
+function collectUnsupportedCmlDeclarationSurface(cslSurface, cmlSurface) {
+  const unsupported = [];
+
+  for (const [exportedName, methods] of cslSurface) {
+    const cmlMethods = cmlSurface.get(exportedName);
+
+    if (!cmlMethods) {
+      unsupported.push(exportedName);
+      continue;
+    }
+
+    for (const methodName of methods) {
+      if (!cmlMethods.has(methodName)) {
+        unsupported.push(`${exportedName}.${methodName}`);
+      }
+    }
+  }
+
+  return unsupported.sort();
+}
+
 test('documents the CML 6.2.0 gaps for the current coin-selection CSL surface', () => {
   const cml = require('@dcspark/cardano-multiplatform-lib-nodejs');
   const cslSurface = collectCoinSelectionCslSurface();
 
   assert.deepEqual(collectUnsupportedCmlSurface(cslSurface, cml), expectedUnsupportedCmlSurface);
+});
+
+test('documents the CML package declaration gaps for the current coin-selection CSL surface', () => {
+  const cslSurface = collectCoinSelectionCslSurface();
+
+  for (const packageName of cmlPackageNames) {
+    assert.deepEqual(
+      collectUnsupportedCmlDeclarationSurface(
+        cslSurface,
+        collectCmlDeclarationSurface(packageName)
+      ),
+      expectedUnsupportedCmlSurface,
+      packageName
+    );
+  }
 });

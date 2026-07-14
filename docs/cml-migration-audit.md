@@ -26,7 +26,7 @@ The published dcSpark packages verified for this audit are:
 
 Both publish `cardano_multiplatform_lib.js` as `main` and `cardano_multiplatform_lib.d.ts` as `types`.
 
-`@dcspark/cardano-multiplatform-lib-nodejs@6.2.0` is kept as a dev-only audit dependency so `npm test` can compare the installed CML API against the CSL surface used by `@fivebinaries/coin-selection@3.0.0`.
+`@dcspark/cardano-multiplatform-lib-browser@6.2.0` and `@dcspark/cardano-multiplatform-lib-nodejs@6.2.0` are kept as dev-only audit dependencies so `npm test` can compare the installed CML API against the CSL surface used by `@fivebinaries/coin-selection@3.0.0`. The nodejs package is checked at runtime; both packages are checked through their published TypeScript declaration surfaces because the browser package's WASM-backed ESM entrypoint is not loadable through CommonJS `require()`.
 
 An npm override alias from the EMURGO package names to those CML packages is not a safe drop-in replacement for `@fivebinaries/coin-selection@3.0.0`. The package loads CSL APIs such as `NetworkInfo.testnet_preprod()` and `NetworkInfo.testnet_preview()`, while CML 6.2.0 exposes `NetworkInfo.preprod()` and `NetworkInfo.preview()` instead. A local smoke check of `require('@fivebinaries/coin-selection')` fails with that alias.
 
