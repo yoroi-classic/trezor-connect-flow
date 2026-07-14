@@ -4,6 +4,7 @@ const path = require('node:path');
 const test = require('node:test');
 
 const entrypointPath = path.resolve(__dirname, '..', 'index.js');
+const CSL_PACKAGE_REQUEST = /^@emurgo\/cardano-serialization-lib(?:-[a-z0-9]+)*(?:\/|$)/;
 
 function createMethod(name, calls, result) {
   return async (params) => {
@@ -14,6 +15,7 @@ function createMethod(name, calls, result) {
 
 function loadEntrypoint({ methods = {}, uiEvent = 'UI_EVENT', deviceEvent = 'DEVICE_EVENT' } = {}) {
   const calls = [];
+  const loadedRequests = [];
   const trezorConnect = {
     init: createMethod('init', calls, methods.init),
     manifest: (params) => calls.push({ name: 'manifest', params }),
@@ -35,6 +37,7 @@ function loadEntrypoint({ methods = {}, uiEvent = 'UI_EVENT', deviceEvent = 'DEV
 
   delete require.cache[entrypointPath];
   Module._load = function loadWithTrezorStub(request, parent, isMain) {
+    loadedRequests.push(request);
     if (request === '@trezor/connect-web') {
       return trezorModule;
     }
@@ -45,6 +48,7 @@ function loadEntrypoint({ methods = {}, uiEvent = 'UI_EVENT', deviceEvent = 'DEV
     return {
       calls,
       entrypoint: require(entrypointPath),
+      loadedRequests,
     };
   } finally {
     Module._load = originalLoad;
@@ -64,6 +68,12 @@ test('exports the Cardano constants Yoroi uses', () => {
   assert.equal(entrypoint.CardanoDRepType.NO_CONFIDENCE, 3);
   assert.equal(entrypoint.CardanoTxWitnessType.SHELLEY_WITNESS, 1);
   assert.equal(entrypoint.CardanoTxAuxiliaryDataSupplementType.GOVERNANCE_REGISTRATION_SIGNATURE, 1);
+});
+
+test('wrapper entrypoint does not load CSL directly', () => {
+  const { loadedRequests } = loadEntrypoint();
+
+  assert.deepEqual(loadedRequests.filter((request) => CSL_PACKAGE_REQUEST.test(request)), []);
 });
 
 test('forwards lifecycle calls and re-exports device/UI events', async () => {
