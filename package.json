@@ -44,6 +44,7 @@
     "@trezor/connect-web": "9.6.4"
   },
   "devDependencies": {
+    "@dcspark/cardano-multiplatform-lib-nodejs": "6.2.0",
     "flowgen": "^1.21.0",
     "typescript": "^5.0.3"
   }
