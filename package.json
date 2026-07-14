@@ -1,20 +1,51 @@
 {
   "name": "trezor-connect-flow",
   "version": "1.0.0",
-  "description": "",
+  "description": "Yoroi wrapper around @trezor/connect-web with generated Flow types.",
   "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "index.js.flow",
+    "README.md"
+  ],
   "scripts": {
+    "check:toolchain": "node scripts/check-toolchain.js",
+    "test": "node --test test/*.test.js",
+    "typecheck": "tsc --noEmit",
     "tsc": "tsc",
     "gen-flow": "flowgen --no-inexact --add-flow-header -o index.js.flow index.d.ts",
-    "build": "npm run tsc && npm run gen-flow"
+    "build": "npm run tsc && npm run gen-flow",
+    "check:generated": "npm run build && git diff --exit-code HEAD -- index.js index.d.ts index.js.flow",
+    "verify": "npm run check:toolchain && npm run check:generated && npm test"
   },
-  "keywords": [],
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yoroi-classic/trezor-connect-flow.git"
+  },
+  "keywords": [
+    "cardano",
+    "trezor",
+    "yoroi"
+  ],
+  "author": "Yoroi Classic",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yoroi-classic/trezor-connect-flow/issues"
+  },
+  "homepage": "https://github.com/yoroi-classic/trezor-connect-flow#readme",
+  "engines": {
+    "node": ">=22 <23 || >=24 <25",
+    "npm": ">=10"
+  },
+  "packageManager": "npm@10.9.7",
   "dependencies": {
     "@trezor/connect-web": "9.6.4"
   },
   "devDependencies": {
+    "@dcspark/cardano-multiplatform-lib-browser": "6.2.0",
+    "@dcspark/cardano-multiplatform-lib-nodejs": "6.2.0",
     "flowgen": "^1.21.0",
     "typescript": "^5.0.3"
   }

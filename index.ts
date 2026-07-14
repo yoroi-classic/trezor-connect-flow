@@ -363,7 +363,7 @@ export default class TrezorConnect {
   }
 
   static off(event: any, callback: (_: any) => void): void {
-    OriginalTrezorConnect.on(event, callback);
+    OriginalTrezorConnect.off(event, callback);
   }
 
   static dispose(): void {
