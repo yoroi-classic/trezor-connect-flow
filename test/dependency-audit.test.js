@@ -10,6 +10,11 @@ const packageLock = JSON.parse(fs.readFileSync(path.join(root, 'package-lock.jso
 const CSL_PACKAGE_NAME = /^@emurgo\/cardano-serialization-lib(?:-[a-z0-9]+)*$/;
 const CSL_PACKAGE_SPECIFIER = /^npm:@emurgo\/cardano-serialization-lib(?:-[a-z0-9]+)*(?:@|$)/;
 const CSL_TARBALL_URL = /\/@emurgo\/cardano-serialization-lib(?:-[a-z0-9]+)*\//;
+const CML_PACKAGE_NAMES = [
+  '@dcspark/cardano-multiplatform-lib-browser',
+  '@dcspark/cardano-multiplatform-lib-nodejs',
+];
+const EXACT_VERSION = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 const allowedDependentPaths = ['node_modules/@fivebinaries/coin-selection'];
 
 function dependencyNames(dependencies = {}) {
@@ -18,6 +23,10 @@ function dependencyNames(dependencies = {}) {
 
 function dependencyReferences(dependencies = {}) {
   return Object.entries(dependencies).flatMap(([packageName, specifier]) => [packageName, specifier]);
+}
+
+function hasDependency(dependencies = {}, packageName) {
+  return Object.prototype.hasOwnProperty.call(dependencies, packageName);
 }
 
 function collectOverrideReferences(overrides = {}) {
@@ -81,6 +90,22 @@ test('does not alias CSL through package-manager overrides', () => {
     overrideReferences.filter(isCslPackageReference),
     []
   );
+});
+
+test('keeps CML audit packages pinned and dev-only', () => {
+  for (const packageName of CML_PACKAGE_NAMES) {
+    assert.equal(hasDependency(packageJson.dependencies, packageName), false);
+    assert.equal(hasDependency(packageJson.peerDependencies, packageName), false);
+    assert.equal(hasDependency(packageJson.optionalDependencies, packageName), false);
+
+    const declaredVersion = packageJson.devDependencies?.[packageName];
+    assert.match(declaredVersion, EXACT_VERSION, `${packageName} must use an exact version`);
+    assert.equal(packageLock.packages?.['']?.devDependencies?.[packageName], declaredVersion);
+
+    const lockedPackage = packageLock.packages?.[`node_modules/${packageName}`];
+    assert.equal(lockedPackage?.version, declaredVersion);
+    assert.equal(lockedPackage?.dev, true);
+  }
 });
 
 test('keeps lockfile CSL references isolated to the known coin-selection dependency', () => {
