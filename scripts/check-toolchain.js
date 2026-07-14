@@ -25,6 +25,26 @@ function currentNpmVersion() {
   return match[1];
 }
 
+function assertWorkflowActionsPinned(filePath, source) {
+  for (const line of source.split('\n')) {
+    const match = line.match(/^\s+uses:\s+([^\s#]+)(?:\s+#\s*(\S+))?$/);
+
+    if (!match) {
+      continue;
+    }
+
+    const [, action, versionComment] = match;
+    const [, ref] = action.match(/@([^@]+)$/) || [];
+
+    assert.match(ref || '', /^[a-f0-9]{40}$/, `${filePath} must pin ${action} to a full commit SHA`);
+    assert.match(
+      versionComment || '',
+      /^v\d+\.\d+\.\d+$/,
+      `${filePath} must document the reviewed upstream version for ${action}`
+    );
+  }
+}
+
 const packageJson = readJson('package.json');
 const packageLock = readJson('package-lock.json');
 const npmrc = fs.readFileSync(path.join(root, '.npmrc'), 'utf8');
@@ -64,3 +84,5 @@ assert.match(dependabot, /directory: "\/"/);
 assert.match(dependencyReviewWorkflow, /^\s+- package\.json$/m);
 assert.match(dependencyReviewWorkflow, /^\s+- package-lock\.json$/m);
 assert.match(dependencyReviewWorkflow, /fail-on-severity: high/);
+assertWorkflowActionsPinned('.github/workflows/test.yml', workflow);
+assertWorkflowActionsPinned('.github/workflows/dependency-review.yml', dependencyReviewWorkflow);
