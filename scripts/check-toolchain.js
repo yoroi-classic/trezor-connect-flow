@@ -73,7 +73,7 @@ assert.match(workflow, /^\s+- 22\.x$/m);
 assert.match(workflow, /^\s+- 24\.x$/m);
 assert.match(workflow, new RegExp(`npm install --global npm@${npmVersion.replaceAll('.', '\\.')}`));
 assert.match(workflow, /npm run check:toolchain/);
-assert.match(workflow, /npm ci/);
+assert.match(workflow, /npm ci --ignore-scripts/);
 assert.match(workflow, /npm run verify/);
 assert.ok(
   workflow.indexOf('npm ci') < workflow.indexOf('npm run verify'),
