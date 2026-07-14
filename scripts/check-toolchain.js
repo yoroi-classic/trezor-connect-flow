@@ -62,8 +62,21 @@ const expectedEngines = {
   node: '>=22 <23 || >=24 <25',
   npm: '>=10',
 };
+const expectedDevEngines = {
+  runtime: {
+    name: 'node',
+    version: expectedEngines.node,
+    onFail: 'error',
+  },
+  packageManager: {
+    name: 'npm',
+    version: expectedEngines.npm,
+    onFail: 'error',
+  },
+};
 
 assert.deepEqual(packageJson.engines, expectedEngines);
+assert.deepEqual(packageJson.devEngines, expectedDevEngines);
 assert.deepEqual(packageLock.packages[''].engines, expectedEngines);
 assert.equal(nvmrc, '22');
 assert.match(npmrc, /^engine-strict=true$/m);
