@@ -17,6 +17,10 @@ trezor-connect-flow
             `-- @emurgo/cardano-serialization-lib-nodejs@13.2.0
 ```
 
+As of the latest checked npm metadata, `@trezor/connect-web@9.7.3` still depends
+on `@trezor/connect@9.7.3`, and `@trezor/connect@9.7.3` still depends on
+`@fivebinaries/coin-selection@3.0.0`.
+
 ## CML package checks
 
 The published dcSpark packages verified for this audit are:
