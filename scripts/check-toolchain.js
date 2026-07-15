@@ -103,6 +103,7 @@ assert.match(dependabot, /package-ecosystem: npm/);
 assert.match(dependabot, /directory: "\/"/);
 assert.match(dependencyReviewWorkflow, /^\s+- package\.json$/m);
 assert.match(dependencyReviewWorkflow, /^\s+- package-lock\.json$/m);
+assert.match(dependencyReviewWorkflow, /^\s+pull-requests: read$/m);
 assert.match(dependencyReviewWorkflow, /fail-on-severity: high/);
 assertWorkflowActionsPinned('.github/workflows/test.yml', workflow);
 assertWorkflowActionsPinned('.github/workflows/dependency-review.yml', dependencyReviewWorkflow);
