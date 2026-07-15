@@ -59,7 +59,7 @@ const npmVersion = parsePackageManager(packageJson.packageManager);
 const actualNodeMajor = Number(process.versions.node.split('.')[0]);
 const actualNpmVersion = currentNpmVersion();
 const expectedEngines = {
-  node: '>=22 <23 || >=24 <25',
+  node: '^22 || ^24',
   npm: '>=10',
 };
 const expectedDevEngines = {
