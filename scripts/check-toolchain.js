@@ -74,11 +74,12 @@ const expectedDevEngines = {
     onFail: 'error',
   },
 };
-const lockfileRootPackage = packageLock.packages[''];
 
 assert.deepEqual(packageJson.engines, expectedEngines);
 assert.deepEqual(packageJson.devEngines, expectedDevEngines);
 assert.equal(packageLock.lockfileVersion, 3);
+const lockfileRootPackage = packageLock.packages[''];
+
 assert.equal(lockfileRootPackage.name, packageJson.name);
 assert.equal(lockfileRootPackage.version, packageJson.version);
 assert.deepEqual(lockfileRootPackage.dependencies, packageJson.dependencies);
