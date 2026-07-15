@@ -74,10 +74,16 @@ const expectedDevEngines = {
     onFail: 'error',
   },
 };
+const lockfileRootPackage = packageLock.packages[''];
 
 assert.deepEqual(packageJson.engines, expectedEngines);
 assert.deepEqual(packageJson.devEngines, expectedDevEngines);
-assert.deepEqual(packageLock.packages[''].engines, expectedEngines);
+assert.equal(packageLock.lockfileVersion, 3);
+assert.equal(lockfileRootPackage.name, packageJson.name);
+assert.equal(lockfileRootPackage.version, packageJson.version);
+assert.deepEqual(lockfileRootPackage.dependencies, packageJson.dependencies);
+assert.deepEqual(lockfileRootPackage.devDependencies, packageJson.devDependencies);
+assert.deepEqual(lockfileRootPackage.engines, expectedEngines);
 assert.equal(nvmrc, '22');
 assert.match(npmrc, /^engine-strict=true$/m);
 assert.ok([22, 24].includes(actualNodeMajor), `Node ${process.versions.node} is outside the CI matrix`);
