@@ -9,7 +9,10 @@ export type Manifest = {
   email: string;
 };
 
+// These aliases preserve the wrapper's intentionally loose legacy event API.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type UiEvent = any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type DeviceEvent = any;
 
 type HDNodeType = {
@@ -357,10 +360,14 @@ export default class TrezorConnect {
     OriginalTrezorConnect.manifest(manifest);
   }
 
+  // The upstream event API is untyped and accepts multiple event payload shapes.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static on(event: any, callback: (_: any) => void): void {
     OriginalTrezorConnect.on(event, callback);
   }
 
+  // The upstream event API is untyped and accepts multiple event payload shapes.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static off(event: any, callback: (_: any) => void): void {
     OriginalTrezorConnect.off(event, callback);
   }

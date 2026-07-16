@@ -89,7 +89,7 @@ assert.equal(nvmrc, '22');
 assert.match(npmrc, /^engine-strict=true$/m);
 assert.ok([22, 24].includes(actualNodeMajor), `Node ${process.versions.node} is outside the CI matrix`);
 assert.equal(actualNpmVersion, npmVersion);
-assert.equal(packageJson.scripts.lint, 'eslint eslint.config.mjs scripts test index.ts');
+assert.equal(packageJson.scripts.lint, 'eslint .');
 assert.match(packageJson.scripts.verify, /npm run lint/);
 assert.match(workflow, /^\s+- 22\.x$/m);
 assert.match(workflow, /^\s+- 24\.x$/m);

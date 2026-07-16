@@ -3,6 +3,9 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
+  {
+    ignores: ['index.js', 'index.d.ts'],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -19,12 +22,6 @@ export default tseslint.config(
     },
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
-    },
-  },
-  {
-    files: ['index.ts'],
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
     },
   }
 );

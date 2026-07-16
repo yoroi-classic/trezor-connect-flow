@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "check:toolchain": "node scripts/check-toolchain.js",
-    "lint": "eslint eslint.config.mjs scripts test index.ts",
+    "lint": "eslint .",
     "test": "node --test test/*.test.js",
     "typecheck": "tsc --noEmit",
     "tsc": "tsc",
