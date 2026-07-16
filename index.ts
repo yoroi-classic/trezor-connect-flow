@@ -1,5 +1,4 @@
 import OriginalTrezorConnect  from '@trezor/connect-web';
-import { PROTO } from '@trezor/connect/lib/constants/';
 export { UI_EVENT, DEVICE_EVENT } from '@trezor/connect-web';
 
 type ValueOf<T> = T[keyof T];
