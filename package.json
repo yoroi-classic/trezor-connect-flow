@@ -12,13 +12,14 @@
   ],
   "scripts": {
     "check:toolchain": "node scripts/check-toolchain.js",
+    "lint": "eslint .",
     "test": "node --test test/*.test.js",
     "typecheck": "tsc --noEmit",
     "tsc": "tsc",
     "gen-flow": "flowgen --no-inexact --add-flow-header -o index.js.flow index.d.ts",
     "build": "npm run tsc && npm run gen-flow",
     "check:generated": "npm run build && git diff --exit-code HEAD -- index.js index.d.ts index.js.flow",
-    "verify": "npm run check:toolchain && npm run check:generated && npm test"
+    "verify": "npm run check:toolchain && npm run lint && npm run check:generated && npm test"
   },
   "repository": {
     "type": "git",
@@ -58,7 +59,11 @@
   "devDependencies": {
     "@dcspark/cardano-multiplatform-lib-browser": "6.2.0",
     "@dcspark/cardano-multiplatform-lib-nodejs": "6.2.0",
+    "@eslint/js": "9.39.5",
+    "eslint": "9.39.5",
     "flowgen": "^1.21.0",
-    "typescript": "^5.0.3"
+    "globals": "17.7.0",
+    "typescript": "^5.0.3",
+    "typescript-eslint": "8.64.0"
   }
 }

@@ -75,9 +75,13 @@ class TrezorConnect {
     static manifest(manifest) {
         connect_web_1.default.manifest(manifest);
     }
+    // The upstream event API is untyped and accepts multiple event payload shapes.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     static on(event, callback) {
         connect_web_1.default.on(event, callback);
     }
+    // The upstream event API is untyped and accepts multiple event payload shapes.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     static off(event, callback) {
         connect_web_1.default.off(event, callback);
     }

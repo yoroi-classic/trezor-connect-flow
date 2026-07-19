@@ -8,3 +8,6 @@ Use Node 22 or 24, matching the CI matrix and `package.json` engine range. npm i
 npm ci
 npm run verify
 ```
+
+`npm run verify` checks the pinned toolchain, lints handwritten JavaScript and
+TypeScript, rebuilds generated package artifacts, and runs fixture-based tests.
