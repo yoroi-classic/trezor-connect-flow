@@ -7,7 +7,7 @@ export type Manifest = {
 export type TrezorFeatures = {
     vendor?: string;
     model?: string;
-    device_id?: string;
+    device_id?: string | null;
     label?: string;
 };
 type HDNodeType = {

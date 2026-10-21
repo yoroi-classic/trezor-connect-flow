@@ -11,7 +11,7 @@ export type Manifest = {
 export type TrezorFeatures = {
   vendor?: string;
   model?: string;
-  device_id?: string;
+  device_id?: string | null;
   label?: string;
 };
 
@@ -363,30 +363,43 @@ export default class TrezorConnect {
   static cardanoGetPublicKey(
     { path, showOnTrezor } : { path: number[], showOnTrezor: boolean }
   ): Response<CardanoPublicKey> {
-    return normalizeResponse(OriginalTrezorConnect.cardanoGetPublicKey({ path, showOnTrezor }));
+    return normalizeResponse<CardanoPublicKey>(OriginalTrezorConnect.cardanoGetPublicKey({ path, showOnTrezor }));
   }
 
   static getFeatures(): Response<TrezorFeatures> {
-    return normalizeResponse(OriginalTrezorConnect.getFeatures());
+    return normalizeResponse<TrezorFeatures>(OriginalTrezorConnect.getFeatures());
   }
 
   static cardanoSignTransaction(
     params: Params<CardanoSignTransaction>
   ): Response<CardanoSignedTxData> {
-    return normalizeResponse(OriginalTrezorConnect.cardanoSignTransaction(params as any));
+    return normalizeResponse<CardanoSignedTxData>(OriginalTrezorConnect.cardanoSignTransaction(
+      params as unknown as Parameters<typeof OriginalTrezorConnect.cardanoSignTransaction>[0]
+    ));
   }
 
   static cardanoGetAddress(params: Params<CardanoGetAddress>): Response<CardanoAddress> {
-    return normalizeResponse(OriginalTrezorConnect.cardanoGetAddress(params as any));
+    return normalizeResponse<CardanoAddress>(OriginalTrezorConnect.cardanoGetAddress(
+      params as unknown as Parameters<typeof OriginalTrezorConnect.cardanoGetAddress>[0]
+    ));
   }
 
   static cardanoSignMessage(params: Params<CardanoSignMessage>): Response<CardanoSignMessageResponse> {
-    return normalizeResponse(OriginalTrezorConnect.cardanoSignMessage(params as any));
+    return normalizeResponse<CardanoSignMessageResponse>(OriginalTrezorConnect.cardanoSignMessage(
+      params as unknown as Parameters<typeof OriginalTrezorConnect.cardanoSignMessage>[0]
+    ));
   }
 };
 
-function normalizeResponse<T>(response: Promise<any>): Response<T> {
-  return response.then(result => result.success
-    ? { success: true, payload: result.payload }
-    : { success: false, payload: { error: result.error.message, code: String(result.error.code) } });
+type ConnectResponse<T> =
+  | { success: true; payload: T }
+  | { success: false; error: { message: string; code: string | number } };
+
+function normalizeResponse<T>(response: Promise<unknown>): Response<T> {
+  return response.then(value => {
+    const result = value as ConnectResponse<T>;
+    return result.success
+      ? { success: true, payload: result.payload }
+      : { success: false, payload: { error: result.error.message, code: String(result.error.code) } };
+  });
 }
