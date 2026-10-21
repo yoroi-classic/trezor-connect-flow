@@ -1,7 +1,4 @@
 import OriginalTrezorConnect  from '@trezor/connect-web';
-export { UI_EVENT, DEVICE_EVENT } from '@trezor/connect-web';
-
-type ValueOf<T> = T[keyof T];
 
 export type Manifest = {
   appName: string;
@@ -9,11 +6,12 @@ export type Manifest = {
   email: string;
 };
 
-// These aliases preserve the wrapper's intentionally loose legacy event API.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type UiEvent = any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type DeviceEvent = any;
+export type TrezorFeatures = {
+  vendor?: string;
+  model?: string;
+  device_id?: string | null;
+  label?: string;
+};
 
 type HDNodeType = {
     depth: number;
@@ -156,8 +154,9 @@ export const CardanoCertificateType = {
   STAKE_DEREGISTRATION_CONWAY: 8,
   VOTE_DELEGATION: 9,
 } as const;
+type CardanoCertificateTypeValue = 0 | 1 | 2 | 3 | 7 | 8 | 9;
 export type CardanoCertificate = {
-  type: ValueOf<typeof CardanoCertificateType>;
+  type: CardanoCertificateTypeValue;
   path?: string | number[];
   pool?: string;
   poolParameters?: CardanoPoolParameters;
@@ -172,8 +171,9 @@ export const CardanoDRepType = {
   ABSTAIN: 2,
   NO_CONFIDENCE: 3,
 } as const;
+type CardanoDRepTypeValue = 0 | 1 | 2 | 3;
 export type CardanoDRep = {
-  type: ValueOf<typeof CardanoDRepType>,
+  type: CardanoDRepTypeValue,
   keyHash?: string,
   scriptHash?: string,
 };
@@ -356,22 +356,6 @@ export default class TrezorConnect {
     return OriginalTrezorConnect.init({ manifest });
   }
 
-  static manifest(manifest: Manifest) {
-    OriginalTrezorConnect.manifest(manifest);
-  }
-
-  // The upstream event API is untyped and accepts multiple event payload shapes.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static on(event: any, callback: (_: any) => void): void {
-    OriginalTrezorConnect.on(event, callback);
-  }
-
-  // The upstream event API is untyped and accepts multiple event payload shapes.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static off(event: any, callback: (_: any) => void): void {
-    OriginalTrezorConnect.off(event, callback);
-  }
-
   static dispose(): void {
     OriginalTrezorConnect.dispose();
   }
@@ -379,20 +363,43 @@ export default class TrezorConnect {
   static cardanoGetPublicKey(
     { path, showOnTrezor } : { path: number[], showOnTrezor: boolean }
   ): Response<CardanoPublicKey> {
-    return OriginalTrezorConnect.cardanoGetPublicKey({ path, showOnTrezor });
+    return normalizeResponse<CardanoPublicKey>(OriginalTrezorConnect.cardanoGetPublicKey({ path, showOnTrezor }));
+  }
+
+  static getFeatures(): Response<TrezorFeatures> {
+    return normalizeResponse<TrezorFeatures>(OriginalTrezorConnect.getFeatures());
   }
 
   static cardanoSignTransaction(
     params: Params<CardanoSignTransaction>
   ): Response<CardanoSignedTxData> {
-    return OriginalTrezorConnect.cardanoSignTransaction(params);
+    return normalizeResponse<CardanoSignedTxData>(OriginalTrezorConnect.cardanoSignTransaction(
+      params as unknown as Parameters<typeof OriginalTrezorConnect.cardanoSignTransaction>[0]
+    ));
   }
 
   static cardanoGetAddress(params: Params<CardanoGetAddress>): Response<CardanoAddress> {
-    return OriginalTrezorConnect.cardanoGetAddress(params);
+    return normalizeResponse<CardanoAddress>(OriginalTrezorConnect.cardanoGetAddress(
+      params as unknown as Parameters<typeof OriginalTrezorConnect.cardanoGetAddress>[0]
+    ));
   }
 
   static cardanoSignMessage(params: Params<CardanoSignMessage>): Response<CardanoSignMessageResponse> {
-    return OriginalTrezorConnect.cardanoSignMessage(params);
+    return normalizeResponse<CardanoSignMessageResponse>(OriginalTrezorConnect.cardanoSignMessage(
+      params as unknown as Parameters<typeof OriginalTrezorConnect.cardanoSignMessage>[0]
+    ));
   }
 };
+
+type ConnectResponse<T> =
+  | { success: true; payload: T }
+  | { success: false; error: { message: string; code: string | number } };
+
+function normalizeResponse<T>(response: Promise<unknown>): Response<T> {
+  return response.then(value => {
+    const result = value as ConnectResponse<T>;
+    return result.success
+      ? { success: true, payload: result.payload }
+      : { success: false, payload: { error: result.error.message, code: String(result.error.code) } };
+  });
+}

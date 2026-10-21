@@ -2,11 +2,11 @@
 
 Issue #2 asks for the remaining EMURGO Cardano Serialization Lib packages to move to dcSpark Cardano Multiplatform Lib where feasible.
 
-## Current dependency path
+## Trezor Connect dependency path
 
 This package does not import CSL directly and does not declare CSL in `package.json`.
 
-The current CSL lockfile entries are transitive:
+The v9 dependency path that brought CSL in transitively was:
 
 ```text
 trezor-connect-flow
@@ -17,9 +17,9 @@ trezor-connect-flow
             `-- @emurgo/cardano-serialization-lib-nodejs@13.2.0
 ```
 
-As of the latest checked npm metadata, `@trezor/connect-web@9.7.3` still depends
-on `@trezor/connect@9.7.3`, and `@trezor/connect@9.7.3` still depends on
-`@fivebinaries/coin-selection@3.0.0`.
+`@trezor/connect-web@10.0.1` no longer includes `@fivebinaries/coin-selection`
+or either EMURGO CSL package in its dependency tree. The v10 wrapper lockfile
+confirms there are no CSL runtime packages on this path.
 
 ## CML package checks
 
@@ -30,7 +30,7 @@ The published dcSpark packages verified for this audit are:
 
 Both publish `cardano_multiplatform_lib.js` as `main` and `cardano_multiplatform_lib.d.ts` as `types`.
 
-`@dcspark/cardano-multiplatform-lib-browser@6.2.0` and `@dcspark/cardano-multiplatform-lib-nodejs@6.2.0` are kept as dev-only audit dependencies so `npm test` can compare the installed CML API against the CSL surface used by `@fivebinaries/coin-selection@3.0.0`. The nodejs package is checked at runtime; both packages are checked through their published TypeScript declaration surfaces because the browser package's WASM-backed ESM entrypoint is not loadable through CommonJS `require()`.
+`@dcspark/cardano-multiplatform-lib-browser@6.2.0` and `@dcspark/cardano-multiplatform-lib-nodejs@6.2.0` remain dev-only audit dependencies. When the legacy coin-selection package is present, tests compare its CSL API surface against CML; under Connect v10 the comparison is skipped because that package is no longer installed. The nodejs package is checked at runtime; both packages are checked through their published TypeScript declaration surfaces because the browser package's WASM-backed ESM entrypoint is not loadable through CommonJS `require()`.
 
 An npm override alias from the EMURGO package names to those CML packages is not a safe drop-in replacement for `@fivebinaries/coin-selection@3.0.0`. The package loads CSL APIs such as `NetworkInfo.testnet_preprod()` and `NetworkInfo.testnet_preview()`, while CML 6.2.0 exposes `NetworkInfo.preprod()` and `NetworkInfo.preview()` instead. A local smoke check of `require('@fivebinaries/coin-selection')` fails with that alias.
 

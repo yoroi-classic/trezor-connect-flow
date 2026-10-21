@@ -13,15 +13,13 @@ function createMethod(name, calls, result) {
   };
 }
 
-function loadEntrypoint({ methods = {}, uiEvent = 'UI_EVENT', deviceEvent = 'DEVICE_EVENT' } = {}) {
+function loadEntrypoint({ methods = {} } = {}) {
   const calls = [];
   const loadedRequests = [];
   const trezorConnect = {
     init: createMethod('init', calls, methods.init),
-    manifest: (params) => calls.push({ name: 'manifest', params }),
-    on: (event, callback) => calls.push({ name: 'on', event, callback }),
-    off: (event, callback) => calls.push({ name: 'off', event, callback }),
     dispose: () => calls.push({ name: 'dispose' }),
+    getFeatures: createMethod('getFeatures', calls, methods.getFeatures),
     cardanoGetPublicKey: createMethod('cardanoGetPublicKey', calls, methods.cardanoGetPublicKey),
     cardanoSignTransaction: createMethod('cardanoSignTransaction', calls, methods.cardanoSignTransaction),
     cardanoGetAddress: createMethod('cardanoGetAddress', calls, methods.cardanoGetAddress),
@@ -30,8 +28,6 @@ function loadEntrypoint({ methods = {}, uiEvent = 'UI_EVENT', deviceEvent = 'DEV
   const trezorModule = {
     __esModule: true,
     default: trezorConnect,
-    UI_EVENT: uiEvent,
-    DEVICE_EVENT: deviceEvent,
   };
   const originalLoad = Module._load;
 
@@ -76,34 +72,37 @@ test('wrapper entrypoint does not load CSL directly', () => {
   assert.deepEqual(loadedRequests.filter((request) => CSL_PACKAGE_REQUEST.test(request)), []);
 });
 
-test('forwards lifecycle calls and re-exports device/UI events', async () => {
+test('forwards the v10 lifecycle API', async () => {
   const manifest = {
     appName: 'Yoroi',
     appUrl: 'https://wallet.example.com',
     email: 'support@example.com',
   };
-  const callback = () => {};
-  const { calls, entrypoint } = loadEntrypoint({
-    uiEvent: { type: 'ui-request-button' },
-    deviceEvent: { type: 'device-connect' },
-  });
-
-  assert.deepEqual(entrypoint.UI_EVENT, { type: 'ui-request-button' });
-  assert.deepEqual(entrypoint.DEVICE_EVENT, { type: 'device-connect' });
+  const { calls, entrypoint } = loadEntrypoint();
 
   await entrypoint.default.init({ manifest });
-  entrypoint.default.manifest(manifest);
-  entrypoint.default.on(entrypoint.UI_EVENT, callback);
-  entrypoint.default.off(entrypoint.UI_EVENT, callback);
   entrypoint.default.dispose();
 
   assert.deepEqual(calls, [
     { name: 'init', params: { manifest } },
-    { name: 'manifest', params: manifest },
-    { name: 'on', event: entrypoint.UI_EVENT, callback },
-    { name: 'off', event: entrypoint.UI_EVENT, callback },
     { name: 'dispose' },
   ]);
+});
+
+test('normalizes v10 errors to the wrapper response shape', async () => {
+  const { entrypoint } = loadEntrypoint({
+    methods: {
+      cardanoGetPublicKey: {
+        success: false,
+        error: { message: 'Cancelled', code: 'Failure_ActionCancelled' },
+      },
+    },
+  });
+
+  assert.deepEqual(await entrypoint.default.cardanoGetPublicKey({ path: [], showOnTrezor: false }), {
+    success: false,
+    payload: { error: 'Cancelled', code: 'Failure_ActionCancelled' },
+  });
 });
 
 test('cardanoGetPublicKey preserves the request and successful response shapes', async () => {
@@ -132,7 +131,7 @@ test('cardanoGetPublicKey preserves the request and successful response shapes',
 
   const result = await entrypoint.default.cardanoGetPublicKey(request);
 
-  assert.strictEqual(result, response);
+  assert.deepEqual(result, response);
   assert.deepEqual(calls, [{ name: 'cardanoGetPublicKey', params: request }]);
 });
 
@@ -269,11 +268,11 @@ test('cardanoSignTransaction forwards a Yoroi transaction fixture unchanged', as
 test('cardanoGetAddress and cardanoSignMessage preserve unsuccessful responses', async () => {
   const addressError = {
     success: false,
-    payload: { error: 'User rejected address export', code: 'Failure_ActionCancelled' },
+    error: { message: 'User rejected address export', code: 'Failure_ActionCancelled' },
   };
   const messageError = {
     success: false,
-    payload: { error: 'Device disconnected during signing', code: 'Device_Disconnected' },
+    error: { message: 'Device disconnected during signing', code: 'Device_Disconnected' },
   };
   const { calls, entrypoint } = loadEntrypoint({
     methods: {
@@ -302,8 +301,14 @@ test('cardanoGetAddress and cardanoSignMessage preserve unsuccessful responses',
     derivationType: entrypoint.CardanoDerivationType.ICARUS_TREZOR,
   };
 
-  assert.strictEqual(await entrypoint.default.cardanoGetAddress(addressRequest), addressError);
-  assert.strictEqual(await entrypoint.default.cardanoSignMessage(messageRequest), messageError);
+  assert.deepEqual(await entrypoint.default.cardanoGetAddress(addressRequest), {
+    success: false,
+    payload: { error: 'User rejected address export', code: 'Failure_ActionCancelled' },
+  });
+  assert.deepEqual(await entrypoint.default.cardanoSignMessage(messageRequest), {
+    success: false,
+    payload: { error: 'Device disconnected during signing', code: 'Device_Disconnected' },
+  });
   assert.deepEqual(calls, [
     { name: 'cardanoGetAddress', params: addressRequest },
     { name: 'cardanoSignMessage', params: messageRequest },

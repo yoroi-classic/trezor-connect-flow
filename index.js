@@ -3,11 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CardanoTxAuxiliaryDataSupplementType = exports.CardanoTxWitnessType = exports.CardanoGovernanceRegistrationFormat = exports.CardanoPoolRelayType = exports.CardanoDRepType = exports.CardanoCertificateType = exports.CardanoTxOutputSerializationFormat = exports.CardanoDerivationType = exports.CardanoAddressType = exports.CardanoTxSigningMode = exports.DEVICE_EVENT = exports.UI_EVENT = void 0;
+exports.CardanoTxAuxiliaryDataSupplementType = exports.CardanoTxWitnessType = exports.CardanoGovernanceRegistrationFormat = exports.CardanoPoolRelayType = exports.CardanoDRepType = exports.CardanoCertificateType = exports.CardanoTxOutputSerializationFormat = exports.CardanoDerivationType = exports.CardanoAddressType = exports.CardanoTxSigningMode = void 0;
 const connect_web_1 = __importDefault(require("@trezor/connect-web"));
-var connect_web_2 = require("@trezor/connect-web");
-Object.defineProperty(exports, "UI_EVENT", { enumerable: true, get: function () { return connect_web_2.UI_EVENT; } });
-Object.defineProperty(exports, "DEVICE_EVENT", { enumerable: true, get: function () { return connect_web_2.DEVICE_EVENT; } });
 exports.CardanoTxSigningMode = {
     ORDINARY_TRANSACTION: 0,
     POOL_REGISTRATION_AS_OWNER: 1,
@@ -72,34 +69,32 @@ class TrezorConnect {
     static async init({ manifest }) {
         return connect_web_1.default.init({ manifest });
     }
-    static manifest(manifest) {
-        connect_web_1.default.manifest(manifest);
-    }
-    // The upstream event API is untyped and accepts multiple event payload shapes.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    static on(event, callback) {
-        connect_web_1.default.on(event, callback);
-    }
-    // The upstream event API is untyped and accepts multiple event payload shapes.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    static off(event, callback) {
-        connect_web_1.default.off(event, callback);
-    }
     static dispose() {
         connect_web_1.default.dispose();
     }
     static cardanoGetPublicKey({ path, showOnTrezor }) {
-        return connect_web_1.default.cardanoGetPublicKey({ path, showOnTrezor });
+        return normalizeResponse(connect_web_1.default.cardanoGetPublicKey({ path, showOnTrezor }));
+    }
+    static getFeatures() {
+        return normalizeResponse(connect_web_1.default.getFeatures());
     }
     static cardanoSignTransaction(params) {
-        return connect_web_1.default.cardanoSignTransaction(params);
+        return normalizeResponse(connect_web_1.default.cardanoSignTransaction(params));
     }
     static cardanoGetAddress(params) {
-        return connect_web_1.default.cardanoGetAddress(params);
+        return normalizeResponse(connect_web_1.default.cardanoGetAddress(params));
     }
     static cardanoSignMessage(params) {
-        return connect_web_1.default.cardanoSignMessage(params);
+        return normalizeResponse(connect_web_1.default.cardanoSignMessage(params));
     }
 }
 exports.default = TrezorConnect;
 ;
+function normalizeResponse(response) {
+    return response.then(value => {
+        const result = value;
+        return result.success
+            ? { success: true, payload: result.payload }
+            : { success: false, payload: { error: result.error.message, code: String(result.error.code) } };
+    });
+}
