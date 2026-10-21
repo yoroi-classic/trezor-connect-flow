@@ -1,7 +1,5 @@
 import OriginalTrezorConnect  from '@trezor/connect-web';
 
-type ValueOf<T> = T[keyof T];
-
 export type Manifest = {
   appName: string;
   appUrl: string;
@@ -156,8 +154,9 @@ export const CardanoCertificateType = {
   STAKE_DEREGISTRATION_CONWAY: 8,
   VOTE_DELEGATION: 9,
 } as const;
+type CardanoCertificateTypeValue = 0 | 1 | 2 | 3 | 7 | 8 | 9;
 export type CardanoCertificate = {
-  type: ValueOf<typeof CardanoCertificateType>;
+  type: CardanoCertificateTypeValue;
   path?: string | number[];
   pool?: string;
   poolParameters?: CardanoPoolParameters;
@@ -172,8 +171,9 @@ export const CardanoDRepType = {
   ABSTAIN: 2,
   NO_CONFIDENCE: 3,
 } as const;
+type CardanoDRepTypeValue = 0 | 1 | 2 | 3;
 export type CardanoDRep = {
-  type: ValueOf<typeof CardanoDRepType>,
+  type: CardanoDRepTypeValue,
   keyHash?: string,
   scriptHash?: string,
 };

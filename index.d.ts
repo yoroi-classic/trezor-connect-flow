@@ -1,4 +1,3 @@
-type ValueOf<T> = T[keyof T];
 export type Manifest = {
     appName: string;
     appUrl: string;
@@ -130,8 +129,9 @@ export declare const CardanoCertificateType: {
     readonly STAKE_DEREGISTRATION_CONWAY: 8;
     readonly VOTE_DELEGATION: 9;
 };
+type CardanoCertificateTypeValue = 0 | 1 | 2 | 3 | 7 | 8 | 9;
 export type CardanoCertificate = {
-    type: ValueOf<typeof CardanoCertificateType>;
+    type: CardanoCertificateTypeValue;
     path?: string | number[];
     pool?: string;
     poolParameters?: CardanoPoolParameters;
@@ -146,8 +146,9 @@ export declare const CardanoDRepType: {
     readonly ABSTAIN: 2;
     readonly NO_CONFIDENCE: 3;
 };
+type CardanoDRepTypeValue = 0 | 1 | 2 | 3;
 export type CardanoDRep = {
-    type: ValueOf<typeof CardanoDRepType>;
+    type: CardanoDRepTypeValue;
     keyHash?: string;
     scriptHash?: string;
 };
