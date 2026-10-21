@@ -1,5 +1,4 @@
 import OriginalTrezorConnect  from '@trezor/connect-web';
-export { UI_EVENT, DEVICE_EVENT } from '@trezor/connect-web';
 
 type ValueOf<T> = T[keyof T];
 
@@ -9,11 +8,12 @@ export type Manifest = {
   email: string;
 };
 
-// These aliases preserve the wrapper's intentionally loose legacy event API.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type UiEvent = any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type DeviceEvent = any;
+export type TrezorFeatures = {
+  vendor?: string;
+  model?: string;
+  device_id?: string;
+  label?: string;
+};
 
 type HDNodeType = {
     depth: number;
@@ -356,22 +356,6 @@ export default class TrezorConnect {
     return OriginalTrezorConnect.init({ manifest });
   }
 
-  static manifest(manifest: Manifest) {
-    OriginalTrezorConnect.manifest(manifest);
-  }
-
-  // The upstream event API is untyped and accepts multiple event payload shapes.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static on(event: any, callback: (_: any) => void): void {
-    OriginalTrezorConnect.on(event, callback);
-  }
-
-  // The upstream event API is untyped and accepts multiple event payload shapes.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static off(event: any, callback: (_: any) => void): void {
-    OriginalTrezorConnect.off(event, callback);
-  }
-
   static dispose(): void {
     OriginalTrezorConnect.dispose();
   }
@@ -379,20 +363,30 @@ export default class TrezorConnect {
   static cardanoGetPublicKey(
     { path, showOnTrezor } : { path: number[], showOnTrezor: boolean }
   ): Response<CardanoPublicKey> {
-    return OriginalTrezorConnect.cardanoGetPublicKey({ path, showOnTrezor });
+    return normalizeResponse(OriginalTrezorConnect.cardanoGetPublicKey({ path, showOnTrezor }));
+  }
+
+  static getFeatures(): Response<TrezorFeatures> {
+    return normalizeResponse(OriginalTrezorConnect.getFeatures());
   }
 
   static cardanoSignTransaction(
     params: Params<CardanoSignTransaction>
   ): Response<CardanoSignedTxData> {
-    return OriginalTrezorConnect.cardanoSignTransaction(params);
+    return normalizeResponse(OriginalTrezorConnect.cardanoSignTransaction(params as any));
   }
 
   static cardanoGetAddress(params: Params<CardanoGetAddress>): Response<CardanoAddress> {
-    return OriginalTrezorConnect.cardanoGetAddress(params);
+    return normalizeResponse(OriginalTrezorConnect.cardanoGetAddress(params as any));
   }
 
   static cardanoSignMessage(params: Params<CardanoSignMessage>): Response<CardanoSignMessageResponse> {
-    return OriginalTrezorConnect.cardanoSignMessage(params);
+    return normalizeResponse(OriginalTrezorConnect.cardanoSignMessage(params as any));
   }
 };
+
+function normalizeResponse<T>(response: Promise<any>): Response<T> {
+  return response.then(result => result.success
+    ? { success: true, payload: result.payload }
+    : { success: false, payload: { error: result.error.message, code: String(result.error.code) } });
+}
