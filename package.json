@@ -54,7 +54,7 @@
   },
   "packageManager": "npm@10.9.7",
   "dependencies": {
-    "@trezor/connect-web": "10.0.1"
+    "@trezor/connect-web": "9.6.4"
   },
   "devDependencies": {
     "@dcspark/cardano-multiplatform-lib-browser": "6.2.0",
