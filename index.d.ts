@@ -1,12 +1,15 @@
-export { UI_EVENT, DEVICE_EVENT } from '@trezor/connect-web';
 type ValueOf<T> = T[keyof T];
 export type Manifest = {
     appName: string;
     appUrl: string;
     email: string;
 };
-export type UiEvent = any;
-export type DeviceEvent = any;
+export type TrezorFeatures = {
+    vendor?: string;
+    model?: string;
+    device_id?: string;
+    label?: string;
+};
 type HDNodeType = {
     depth: number;
     fingerprint: number;
@@ -307,15 +310,14 @@ export default class TrezorConnect {
     static init({ manifest }: {
         manifest: Manifest;
     }): Promise<void>;
-    static manifest(manifest: Manifest): void;
-    static on(event: any, callback: (_: any) => void): void;
-    static off(event: any, callback: (_: any) => void): void;
     static dispose(): void;
     static cardanoGetPublicKey({ path, showOnTrezor }: {
         path: number[];
         showOnTrezor: boolean;
     }): Response<CardanoPublicKey>;
+    static getFeatures(): Response<TrezorFeatures>;
     static cardanoSignTransaction(params: Params<CardanoSignTransaction>): Response<CardanoSignedTxData>;
     static cardanoGetAddress(params: Params<CardanoGetAddress>): Response<CardanoAddress>;
     static cardanoSignMessage(params: Params<CardanoSignMessage>): Response<CardanoSignMessageResponse>;
 }
+export {};

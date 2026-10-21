@@ -36,10 +36,8 @@ function writeTrezorStub(consumerRoot) {
     `
 const connect = {
   init: async (params) => ({ success: true, payload: { method: 'init', params } }),
-  manifest: () => {},
-  on: () => {},
-  off: () => {},
   dispose: () => {},
+  getFeatures: async () => ({ success: true, payload: { vendor: 'trezor' } }),
   cardanoGetPublicKey: async (params) => ({
     success: true,
     payload: { method: 'cardanoGetPublicKey', params },
@@ -61,8 +59,6 @@ const connect = {
 module.exports = {
   __esModule: true,
   default: connect,
-  UI_EVENT: { type: 'ui-event' },
-  DEVICE_EVENT: { type: 'device-event' },
 };
 `
   );
@@ -120,9 +116,8 @@ const trezorConnectFlow = require(${JSON.stringify(packageJson.name)});
 (async () => {
   assert.equal(trezorConnectFlow.CardanoAddressType.REWARD, 14);
   assert.equal(trezorConnectFlow.CardanoTxSigningMode.PLUTUS_TRANSACTION, 3);
-  assert.deepEqual(trezorConnectFlow.UI_EVENT, { type: 'ui-event' });
-  assert.deepEqual(trezorConnectFlow.DEVICE_EVENT, { type: 'device-event' });
   assert.equal(typeof trezorConnectFlow.default.cardanoGetPublicKey, 'function');
+  assert.equal(typeof trezorConnectFlow.default.getFeatures, 'function');
 
   const request = { path: [2147485500, 2147485463, 2147483648], showOnTrezor: false };
   const response = await trezorConnectFlow.default.cardanoGetPublicKey(request);
