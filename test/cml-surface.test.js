@@ -12,6 +12,11 @@ const coinSelectionRoot = path.join(
   'lib',
   'cjs'
 );
+const packageLock = require('../package-lock.json');
+const hasCoinSelectionDependency = Object.hasOwn(
+  packageLock.packages || {},
+  'node_modules/@fivebinaries/coin-selection'
+);
 const cmlPackageNames = [
   '@dcspark/cardano-multiplatform-lib-browser',
   '@dcspark/cardano-multiplatform-lib-nodejs',
@@ -149,14 +154,22 @@ function collectUnsupportedCmlDeclarationSurface(cslSurface, cmlSurface) {
   return unsupported.sort();
 }
 
-test('documents the CML 6.2.0 gaps for the current coin-selection CSL surface', () => {
+test('Connect v10 removes the legacy coin-selection CSL dependency', () => {
+  assert.equal(hasCoinSelectionDependency, false);
+});
+
+test('documents the CML 6.2.0 gaps for the current coin-selection CSL surface', {
+  skip: !hasCoinSelectionDependency && 'Connect v10 no longer installs the legacy coin-selection package',
+}, () => {
   const cml = require('@dcspark/cardano-multiplatform-lib-nodejs');
   const cslSurface = collectCoinSelectionCslSurface();
 
   assert.deepEqual(collectUnsupportedCmlSurface(cslSurface, cml), expectedUnsupportedCmlSurface);
 });
 
-test('documents the CML package declaration gaps for the current coin-selection CSL surface', () => {
+test('documents the CML package declaration gaps for the current coin-selection CSL surface', {
+  skip: !hasCoinSelectionDependency && 'Connect v10 no longer installs the legacy coin-selection package',
+}, () => {
   const cslSurface = collectCoinSelectionCslSurface();
 
   for (const packageName of cmlPackageNames) {
