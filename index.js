@@ -91,7 +91,10 @@ class TrezorConnect {
 exports.default = TrezorConnect;
 ;
 function normalizeResponse(response) {
-    return response.then(result => result.success
-        ? { success: true, payload: result.payload }
-        : { success: false, payload: { error: result.error.message, code: String(result.error.code) } });
+    return response.then(value => {
+        const result = value;
+        return result.success
+            ? { success: true, payload: result.payload }
+            : { success: false, payload: { error: result.error.message, code: String(result.error.code) } };
+    });
 }
