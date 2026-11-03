@@ -1,4 +1,4 @@
-import OriginalTrezorConnect  from '@trezor/connect-web';
+import OriginalTrezorConnect  from '@trezor/connect-webextension';
 
 export type Manifest = {
   appName: string;
@@ -353,9 +353,8 @@ export type CardanoSignMessageResponse = {
 
 export default class TrezorConnect {
   static async init({ manifest }: {manifest: Manifest}): Promise<void> {
-    // Yoroi's extension uses the Suite Web flow; Suite Desktop's local
-    // websocket is not part of the extension's supported connection path.
-    return OriginalTrezorConnect.init({ manifest, coreMode: 'suite-web' });
+    // This adapter runs in Yoroi's MV3 background service worker.
+    return OriginalTrezorConnect.init({ manifest });
   }
 
   static dispose(): void {

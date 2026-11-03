@@ -1,7 +1,7 @@
 {
   "name": "trezor-connect-flow",
   "version": "1.0.0",
-  "description": "Yoroi wrapper around @trezor/connect-web with generated Flow types.",
+  "description": "Yoroi wrapper around @trezor/connect-webextension with generated Flow types.",
   "main": "index.js",
   "types": "index.d.ts",
   "files": [
@@ -54,7 +54,7 @@
   },
   "packageManager": "npm@10.9.7",
   "dependencies": {
-    "@trezor/connect-web": "10.0.1"
+    "@trezor/connect-webextension": "10.0.1"
   },
   "devDependencies": {
     "@dcspark/cardano-multiplatform-lib-browser": "6.2.0",

@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CardanoTxAuxiliaryDataSupplementType = exports.CardanoTxWitnessType = exports.CardanoGovernanceRegistrationFormat = exports.CardanoPoolRelayType = exports.CardanoDRepType = exports.CardanoCertificateType = exports.CardanoTxOutputSerializationFormat = exports.CardanoDerivationType = exports.CardanoAddressType = exports.CardanoTxSigningMode = void 0;
-const connect_web_1 = __importDefault(require("@trezor/connect-web"));
+const connect_webextension_1 = __importDefault(require("@trezor/connect-webextension"));
 exports.CardanoTxSigningMode = {
     ORDINARY_TRANSACTION: 0,
     POOL_REGISTRATION_AS_OWNER: 1,
@@ -67,27 +67,26 @@ exports.CardanoTxAuxiliaryDataSupplementType = {
 };
 class TrezorConnect {
     static async init({ manifest }) {
-        // Yoroi's extension uses the Suite Web flow; Suite Desktop's local
-        // websocket is not part of the extension's supported connection path.
-        return connect_web_1.default.init({ manifest, coreMode: 'suite-web' });
+        // This adapter runs in Yoroi's MV3 background service worker.
+        return connect_webextension_1.default.init({ manifest });
     }
     static dispose() {
-        connect_web_1.default.dispose();
+        connect_webextension_1.default.dispose();
     }
     static cardanoGetPublicKey({ path, showOnTrezor }) {
-        return normalizeResponse(connect_web_1.default.cardanoGetPublicKey({ path, showOnTrezor }));
+        return normalizeResponse(connect_webextension_1.default.cardanoGetPublicKey({ path, showOnTrezor }));
     }
     static getFeatures() {
-        return normalizeResponse(connect_web_1.default.getFeatures());
+        return normalizeResponse(connect_webextension_1.default.getFeatures());
     }
     static cardanoSignTransaction(params) {
-        return normalizeResponse(connect_web_1.default.cardanoSignTransaction(params));
+        return normalizeResponse(connect_webextension_1.default.cardanoSignTransaction(params));
     }
     static cardanoGetAddress(params) {
-        return normalizeResponse(connect_web_1.default.cardanoGetAddress(params));
+        return normalizeResponse(connect_webextension_1.default.cardanoGetAddress(params));
     }
     static cardanoSignMessage(params) {
-        return normalizeResponse(connect_web_1.default.cardanoSignMessage(params));
+        return normalizeResponse(connect_webextension_1.default.cardanoSignMessage(params));
     }
 }
 exports.default = TrezorConnect;
