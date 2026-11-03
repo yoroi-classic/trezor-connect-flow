@@ -353,7 +353,9 @@ export type CardanoSignMessageResponse = {
 
 export default class TrezorConnect {
   static async init({ manifest }: {manifest: Manifest}): Promise<void> {
-    return OriginalTrezorConnect.init({ manifest });
+    // Yoroi's extension uses the Suite Web flow; Suite Desktop's local
+    // websocket is not part of the extension's supported connection path.
+    return OriginalTrezorConnect.init({ manifest, coreMode: 'suite-web' });
   }
 
   static dispose(): void {

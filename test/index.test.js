@@ -84,7 +84,7 @@ test('forwards the v10 lifecycle API', async () => {
   entrypoint.default.dispose();
 
   assert.deepEqual(calls, [
-    { name: 'init', params: { manifest } },
+    { name: 'init', params: { manifest, coreMode: 'suite-web' } },
     { name: 'dispose' },
   ]);
 });

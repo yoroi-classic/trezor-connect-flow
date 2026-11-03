@@ -67,7 +67,9 @@ exports.CardanoTxAuxiliaryDataSupplementType = {
 };
 class TrezorConnect {
     static async init({ manifest }) {
-        return connect_web_1.default.init({ manifest });
+        // Yoroi's extension uses the Suite Web flow; Suite Desktop's local
+        // websocket is not part of the extension's supported connection path.
+        return connect_web_1.default.init({ manifest, coreMode: 'suite-web' });
     }
     static dispose() {
         connect_web_1.default.dispose();
