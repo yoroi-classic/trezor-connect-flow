@@ -34,7 +34,7 @@ function loadEntrypoint({ methods = {} } = {}) {
   delete require.cache[entrypointPath];
   Module._load = function loadWithTrezorStub(request, parent, isMain) {
     loadedRequests.push(request);
-    if (request === '@trezor/connect-web') {
+    if (request === '@trezor/connect-webextension') {
       return trezorModule;
     }
     return originalLoad.call(this, request, parent, isMain);
@@ -84,7 +84,7 @@ test('forwards the v10 lifecycle API', async () => {
   entrypoint.default.dispose();
 
   assert.deepEqual(calls, [
-    { name: 'init', params: { manifest } },
+    { name: 'init', params: { manifest, coreMode: 'suite-web' } },
     { name: 'dispose' },
   ]);
 });

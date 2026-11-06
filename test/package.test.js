@@ -20,13 +20,13 @@ function copyPublicPackageFile(packageRoot, filePath) {
 }
 
 function writeTrezorStub(consumerRoot) {
-  const stubRoot = path.join(consumerRoot, 'node_modules', '@trezor', 'connect-web');
+  const stubRoot = path.join(consumerRoot, 'node_modules', '@trezor', 'connect-webextension');
 
   fs.mkdirSync(stubRoot, { recursive: true });
   fs.writeFileSync(
     path.join(stubRoot, 'package.json'),
     JSON.stringify({
-      name: '@trezor/connect-web',
+      name: '@trezor/connect-webextension',
       version: '0.0.0-test',
       main: 'index.js',
     })

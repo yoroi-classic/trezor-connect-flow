@@ -1,4 +1,4 @@
-import OriginalTrezorConnect  from '@trezor/connect-web';
+import OriginalTrezorConnect  from '@trezor/connect-webextension';
 
 export type Manifest = {
   appName: string;
@@ -353,7 +353,8 @@ export type CardanoSignMessageResponse = {
 
 export default class TrezorConnect {
   static async init({ manifest }: {manifest: Manifest}): Promise<void> {
-    return OriginalTrezorConnect.init({ manifest });
+    // This adapter runs in Yoroi's MV3 background service worker.
+    return OriginalTrezorConnect.init({ manifest, coreMode: 'suite-web' });
   }
 
   static dispose(): void {
