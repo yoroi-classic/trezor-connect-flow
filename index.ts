@@ -354,7 +354,7 @@ export type CardanoSignMessageResponse = {
 export default class TrezorConnect {
   static async init({ manifest }: {manifest: Manifest}): Promise<void> {
     // This adapter runs in Yoroi's MV3 background service worker.
-    return OriginalTrezorConnect.init({ manifest });
+    return OriginalTrezorConnect.init({ manifest, coreMode: 'suite-web' });
   }
 
   static dispose(): void {

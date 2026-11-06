@@ -68,7 +68,7 @@ exports.CardanoTxAuxiliaryDataSupplementType = {
 class TrezorConnect {
     static async init({ manifest }) {
         // This adapter runs in Yoroi's MV3 background service worker.
-        return connect_webextension_1.default.init({ manifest });
+        return connect_webextension_1.default.init({ manifest, coreMode: 'suite-web' });
     }
     static dispose() {
         connect_webextension_1.default.dispose();
